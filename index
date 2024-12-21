@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Spreadsheet-Like Webpage</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    table, th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f9f9f9;
+    }
+
+    .controls {
+      margin-bottom: 10px;
+    }
+
+    .controls input {
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Spreadsheet-Like Page</h1>
+
+<div id="spreadsheetContainer"></div>
+
+<div class="controls">
+  <h3>Rename a Heading</h3>
+  <label for="oldHeadingInput">Current Heading:</label>
+  <input type="text" id="oldHeadingInput" placeholder="e.g., Heading 1" />
+  
+  <label for="newHeadingInput">New Heading:</label>
+  <input type="text" id="newHeadingInput" placeholder="e.g., New Heading 1" />
+  
+  <button id="renameHeadingBtn">Rename Heading</button>
+</div>
+
+<div class="controls">
+  <h3>Add a New Column</h3>
+  <label for="newColumnNameInput">Column Name:</label>
+  <input type="text" id="newColumnNameInput" placeholder="e.g., Extra Column" />
+  
+  <button id="addColumnBtn">Add Column</button>
+</div>
+
+<div class="controls">
+  <h3>Add a New Row</h3>
+  <label for="newRowDataInput">Row Data (comma-separated):</label>
+  <input type="text" id="newRowDataInput" placeholder="e.g., Row1Col1, Row1Col2, Row1Col3" />
+  
+  <button id="addRowBtn">Add Row</button>
+</div>
+
+<script>
+  // SAMPLE DATA: 
+  // First row (row index 0) is the heading row.
+  // Subsequent rows are data rows.
+  let tableData = [
+    ["Heading 1", "Heading 2", "Heading 3"],
+    ["Row 1 Col 1", "Row 1 Col 2", "Row 1 Col 3"],
+    ["Row 2 Col 1", "Row 2 Col 2", "Row 2 Col 3"]
+  ];
+
+  // Function to render the table in the DOM
+  function renderTable() {
+    const container = document.getElementById("spreadsheetContainer");
+    container.innerHTML = ""; // Clear existing table
+
+    // Create table element
+    const table = document.createElement("table");
+
+    // For each row in tableData, create a row (tr) and cells (td or th)
+    tableData.forEach((rowData, rowIndex) => {
+      const row = document.createElement("tr");
+
+      rowData.forEach((cellData, colIndex) => {
+        if (rowIndex === 0) {
+          // Heading row
+          const th = document.createElement("th");
+          th.textContent = cellData;
+          row.appendChild(th);
+        } else {
+          // Data row
+          const td = document.createElement("td");
+          td.textContent = cellData;
+          row.appendChild(td);
+        }
+      });
+
+      table.appendChild(row);
+    });
+
+    container.appendChild(table);
+  }
+
+  // Function to rename a column heading
+  function renameHeading(oldHeading, newHeading) {
+    // The first row (index 0) contains headings
+    for (let i = 0; i < tableData[0].length; i++) {
+      if (tableData[0][i] === oldHeading) {
+        tableData[0][i] = newHeading;
+        break;
+      }
+    }
+    renderTable();
+  }
+
+  // Function to add a new column
+  function addColumn(newColumnName) {
+    // Add the new column name to the heading row
+    tableData[0].push(newColumnName);
+
+    // Add empty string (or placeholders) to each existing row
+    for (let i = 1; i < tableData.length; i++) {
+      tableData[i].push(" ");
+    }
+    renderTable();
+  }
+
+  // Function to add a new row
+  function addRow(rowDataString) {
+    // rowDataString is comma-separated data
+    // e.g., "Row 3 Col 1, Row 3 Col 2, Row 3 Col 3"
+    const rowDataArray = rowDataString.split(",").map((cell) => cell.trim());
+
+    // If user enters fewer columns than headings, fill with blanks
+    // If more, that’s also fine (but might be misaligned if not careful)
+    while (rowDataArray.length < tableData[0].length) {
+      rowDataArray.push(" ");
+    }
+
+    tableData.push(rowDataArray);
+    renderTable();
+  }
+
+  // Set up event listeners once the page has loaded
+  window.addEventListener("DOMContentLoaded", () => {
+    renderTable();
+
+    document.getElementById("renameHeadingBtn").addEventListener("click", () => {
+      const oldHeading = document.getElementById("oldHeadingInput").value;
+      const newHeading = document.getElementById("newHeadingInput").value;
+      if (oldHeading && newHeading) {
+        renameHeading(oldHeading, newHeading);
+      }
+    });
+
+    document.getElementById("addColumnBtn").addEventListener("click", () => {
+      const newColumnName = document.getElementById("newColumnNameInput").value;
+      if (newColumnName) {
+        addColumn(newColumnName);
+      }
+    });
+
+    document.getElementById("addRowBtn").addEventListener("click", () => {
+      const newRowData = document.getElementById("newRowDataInput").value;
+      if (newRowData) {
+        addRow(newRowData);
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
