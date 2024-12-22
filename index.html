@@ -41,12 +41,18 @@
     .controls input, .controls button {
       margin-right: 10px;
     }
+
+    .autosave-status {
+      font-size: 0.9em;
+      color: green;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
 
 <h1>Expense Tracker</h1>
-<p>Edit cells directly. Add new rows or columns below.</p>
+<p>Edit cells directly. Add new rows or columns below. Changes are automatically saved.</p>
 
 <div id="tableContainer"></div>
 
@@ -61,6 +67,8 @@
   <h3>Add a New Row</h3>
   <button onclick="addRow()">Add Row</button>
 </div>
+
+<div class="autosave-status" id="autosaveStatus">Changes will be saved automatically.</div>
 
 <script>
   const data = [
@@ -94,6 +102,8 @@
     ["POSSIBLE LEFT OVER", "($165)", "PER MONTH", ""]
   ];
 
+  let autosaveTimer;
+
   function renderTable() {
     const container = document.getElementById('tableContainer');
     container.innerHTML = '';
@@ -111,6 +121,7 @@
           cellElement.contentEditable = true;
           cellElement.addEventListener('blur', () => {
             data[rowIndex][colIndex] = cellElement.textContent;
+            triggerAutosave();
           });
         }
 
@@ -133,12 +144,47 @@
     }
 
     renderTable();
+    triggerAutosave();
   }
 
   function addRow() {
     const newRow = Array(data[0].length).fill('');
     data.push(newRow);
     renderTable();
+    triggerAutosave();
+  }
+
+  function triggerAutosave() {
+    clearTimeout(autosaveTimer);
+    const status = document.getElementById('autosaveStatus');
+    status.textContent = 'Saving changes...';
+
+    autosaveTimer = setTimeout(() => {
+      saveToLocalStorage();
+      status.textContent = 'Changes saved.';
+    }, 1000); // Save after 1 second of inactivity
+  }
+
+  function saveToLocalStorage() {
+    localStorage.setItem('expenseTrackerData', JSON.stringify(data));
+  }
+
+  function loadFromLocalStorage() {
+    const savedData = localStorage.getItem('expenseTrackerData');
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      if (Array.isArray(parsedData)) {
+        return parsedData;
+      }
+    }
+    return null;
+  }
+
+  // Load data from localStorage if available
+  const savedData = loadFromLocalStorage();
+  if (savedData) {
+    data.length = 0;
+    data.push(...savedData);
   }
 
   // Initial render
