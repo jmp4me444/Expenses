@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Spreadsheet-Like Webpage</title>
+  <meta charset="UTF-8">
+  <title>Expense Tracker</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,6 +11,7 @@
 
     table {
       border-collapse: collapse;
+      width: 100%;
       margin-bottom: 20px;
     }
 
@@ -21,159 +22,127 @@
     }
 
     th {
+      background-color: #f4f4f4;
+    }
+
+    td[contenteditable="true"] {
       background-color: #f9f9f9;
+      outline: none;
+    }
+
+    td:focus {
+      background-color: #e0f7fa;
     }
 
     .controls {
-      margin-bottom: 10px;
+      margin-top: 20px;
     }
 
-    .controls input {
-      margin-right: 8px;
+    .controls input, .controls button {
+      margin-right: 10px;
     }
   </style>
 </head>
 <body>
 
-<h1>Spreadsheet-Like Page</h1>
+<h1>Expense Tracker</h1>
+<p>Edit cells directly. Add new rows or columns below.</p>
 
-<div id="spreadsheetContainer"></div>
-
-<div class="controls">
-  <h3>Rename a Heading</h3>
-  <label for="oldHeadingInput">Current Heading:</label>
-  <input type="text" id="oldHeadingInput" placeholder="e.g., Heading 1" />
-  
-  <label for="newHeadingInput">New Heading:</label>
-  <input type="text" id="newHeadingInput" placeholder="e.g., New Heading 1" />
-  
-  <button id="renameHeadingBtn">Rename Heading</button>
-</div>
+<div id="tableContainer"></div>
 
 <div class="controls">
   <h3>Add a New Column</h3>
-  <label for="newColumnNameInput">Column Name:</label>
-  <input type="text" id="newColumnNameInput" placeholder="e.g., Extra Column" />
-  
-  <button id="addColumnBtn">Add Column</button>
+  <label for="newColumnName">Column Name:</label>
+  <input type="text" id="newColumnName" placeholder="Enter column name">
+  <button onclick="addColumn()">Add Column</button>
 </div>
 
 <div class="controls">
   <h3>Add a New Row</h3>
-  <label for="newRowDataInput">Row Data (comma-separated):</label>
-  <input type="text" id="newRowDataInput" placeholder="e.g., Row1Col1, Row1Col2, Row1Col3" />
-  
-  <button id="addRowBtn">Add Row</button>
+  <button onclick="addRow()">Add Row</button>
 </div>
 
 <script>
-  // SAMPLE DATA: 
-  // First row (row index 0) is the heading row.
-  // Subsequent rows are data rows.
-  let tableData = [
-    ["Heading 1", "Heading 2", "Heading 3"],
-    ["Row 1 Col 1", "Row 1 Col 2", "Row 1 Col 3"],
-    ["Row 2 Col 1", "Row 2 Col 2", "Row 2 Col 3"]
+  const data = [
+    ["EXPENSE", "AMOUNT", "FREQUENCY", "NOTES"],
+    ["PHONE BILL", "$250", "PER MONTH", ""],
+    ["IRS", "$100", "PER MONTH", ""],
+    ["Vitamins", "$25", "PER MONTH", ""],
+    ["RX", "$20", "PER MONTH", ""],
+    ["PET INSURANCE", "$65", "PER MONTH", ""],
+    ["GYM", "$10", "PER MONTH", ""],
+    ["VPN", "$5", "PER MONTH", ""],
+    ["AMAZON CREDIT CARD", "$100", "PER MONTH", ""],
+    ["PAYPAL CREDIT", "$50", "PER MONTH", ""],
+    ["OTHER CREDIT CARDS", "$100", "PER MONTH", ""],
+    ["FOOD", "$500", "PER MONTH", ""],
+    ["GAS", "$250", "PER MONTH", ""],
+    ["AMAZON PHOTOS", "$5", "PER MONTH", ""],
+    ["PARAMOUNT+", "$10", "PER MONTH", ""],
+    ["PEACOCK+", "$5", "PER MONTH", ""],
+    ["HBO MAX", "$14", "PER MONTH", ""],
+    ["NETFLIX", "$20", "PER MONTH", ""],
+    ["HULU", "$13", "PER MONTH", ""],
+    ["NYT", "$4", "PER MONTH", ""],
+    ["GOOGLE STORAGE", "$2", "PER MONTH", ""],
+    ["APPLE STORAGE", "$2", "PER MONTH", ""],
+    ["AMAZON PRIME", "$15", "PER MONTH", ""],
+    ["TO 2nd checking account", "$2,000", "PER MONTH", ""],
+    ["MISCELANEOUS", "$500", "PER MONTH", "Drugstore, Amazon, other, etc..."],
+    ["TOTAL", "$4,065", "PER MONTH", ""],
+    ["SALARY", "$3,900", "PER MONTH", ""],
+    ["POSSIBLE LEFT OVER", "($165)", "PER MONTH", ""]
   ];
 
-  // Function to render the table in the DOM
   function renderTable() {
-    const container = document.getElementById("spreadsheetContainer");
-    container.innerHTML = ""; // Clear existing table
+    const container = document.getElementById('tableContainer');
+    container.innerHTML = '';
 
-    // Create table element
-    const table = document.createElement("table");
+    const table = document.createElement('table');
 
-    // For each row in tableData, create a row (tr) and cells (td or th)
-    tableData.forEach((rowData, rowIndex) => {
-      const row = document.createElement("tr");
+    data.forEach((row, rowIndex) => {
+      const tr = document.createElement('tr');
 
-      rowData.forEach((cellData, colIndex) => {
-        if (rowIndex === 0) {
-          // Heading row
-          const th = document.createElement("th");
-          th.textContent = cellData;
-          row.appendChild(th);
-        } else {
-          // Data row
-          const td = document.createElement("td");
-          td.textContent = cellData;
-          row.appendChild(td);
+      row.forEach((cell, colIndex) => {
+        const cellElement = rowIndex === 0 ? document.createElement('th') : document.createElement('td');
+        cellElement.textContent = cell;
+
+        if (rowIndex > 0) {
+          cellElement.contentEditable = true;
+          cellElement.addEventListener('blur', () => {
+            data[rowIndex][colIndex] = cellElement.textContent;
+          });
         }
+
+        tr.appendChild(cellElement);
       });
 
-      table.appendChild(row);
+      table.appendChild(tr);
     });
 
     container.appendChild(table);
   }
 
-  // Function to rename a column heading
-  function renameHeading(oldHeading, newHeading) {
-    // The first row (index 0) contains headings
-    for (let i = 0; i < tableData[0].length; i++) {
-      if (tableData[0][i] === oldHeading) {
-        tableData[0][i] = newHeading;
-        break;
-      }
+  function addColumn() {
+    const newColumnName = document.getElementById('newColumnName').value.trim();
+    if (!newColumnName) return alert('Please enter a column name.');
+
+    data[0].push(newColumnName);
+    for (let i = 1; i < data.length; i++) {
+      data[i].push('');
     }
+
     renderTable();
   }
 
-  // Function to add a new column
-  function addColumn(newColumnName) {
-    // Add the new column name to the heading row
-    tableData[0].push(newColumnName);
-
-    // Add empty string (or placeholders) to each existing row
-    for (let i = 1; i < tableData.length; i++) {
-      tableData[i].push(" ");
-    }
+  function addRow() {
+    const newRow = Array(data[0].length).fill('');
+    data.push(newRow);
     renderTable();
   }
 
-  // Function to add a new row
-  function addRow(rowDataString) {
-    // rowDataString is comma-separated data
-    // e.g., "Row 3 Col 1, Row 3 Col 2, Row 3 Col 3"
-    const rowDataArray = rowDataString.split(",").map((cell) => cell.trim());
-
-    // If user enters fewer columns than headings, fill with blanks
-    // If more, that’s also fine (but might be misaligned if not careful)
-    while (rowDataArray.length < tableData[0].length) {
-      rowDataArray.push(" ");
-    }
-
-    tableData.push(rowDataArray);
-    renderTable();
-  }
-
-  // Set up event listeners once the page has loaded
-  window.addEventListener("DOMContentLoaded", () => {
-    renderTable();
-
-    document.getElementById("renameHeadingBtn").addEventListener("click", () => {
-      const oldHeading = document.getElementById("oldHeadingInput").value;
-      const newHeading = document.getElementById("newHeadingInput").value;
-      if (oldHeading && newHeading) {
-        renameHeading(oldHeading, newHeading);
-      }
-    });
-
-    document.getElementById("addColumnBtn").addEventListener("click", () => {
-      const newColumnName = document.getElementById("newColumnNameInput").value;
-      if (newColumnName) {
-        addColumn(newColumnName);
-      }
-    });
-
-    document.getElementById("addRowBtn").addEventListener("click", () => {
-      const newRowData = document.getElementById("newRowDataInput").value;
-      if (newRowData) {
-        addRow(newRowData);
-      }
-    });
-  });
+  // Initial render
+  renderTable();
 </script>
 
 </body>
